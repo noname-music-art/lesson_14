@@ -1,5 +1,6 @@
-import sqlite3
+import sqlite3, json
 from flask import jsonify, Response
+
 
 def get_movie_by_title(title: str) -> Response:
     columns = ["title", "country", "release_year", "genre", "description"]
@@ -74,4 +75,22 @@ def get_by_actors(actor_1: str, actor_2: str) -> list:
     return result
 
 
-get_by_actors('Jack Black', 'Dustin Hoffman')
+def get_by_query(movie_type: str, year: int, genre: str) -> []:
+    columns = ["title", "description"]
+    zipped = []
+
+    with sqlite3.connect('data/netflix.db') as connection:
+        cur = connection.cursor()
+        cur.execute("SELECT title, description FROM netflix "
+                    "WHERE `type` = :movie_type "
+                    "AND `release_year` = :year "
+                    "AND `listed_in` LIKE :genre ", {"movie_type": movie_type, "year": year, "genre": f"%{genre}%"})
+        data = cur.fetchall()
+        for item in data:
+            zipped.append(dict(zip(columns, item)))
+        # print(json.dumps(zipped, indent=4))
+        return json.dumps(data, indent=4)
+
+
+# get_by_actors('Jack Black', 'Dustin Hoffman')
+# get_by_query('Movie', 2020, 'Action')
