@@ -1,9 +1,7 @@
 import sqlite3
 from flask import jsonify, Response
 
-
 def get_movie_by_title(title: str) -> Response:
-
     columns = ["title", "country", "release_year", "genre", "description"]
     with sqlite3.connect('data/netflix.db') as connection:
         cur = connection.cursor()
@@ -20,7 +18,8 @@ def get_movie_by_date_range(start: int, stop: int) -> Response:
     with sqlite3.connect('data/netflix.db') as connection:
         cur = connection.cursor()
         cur.execute("SELECT title, release_year FROM netflix "
-                    "WHERE release_year BETWEEN :start AND :stop ", {"start": start, "stop": stop})
+                    "WHERE release_year BETWEEN :start AND :stop "
+                    "LIMIT 100", {"start": start, "stop": stop})
         data = cur.fetchall()
         for item in data:
             zipped.append(dict(zip(columns, item)))
@@ -54,3 +53,25 @@ def get_movie_by_genre(genre: str) -> Response:
         for item in data:
             zipped.append(dict(zip(columns, item)))
         return jsonify(zipped)
+
+
+def get_by_actors(actor_1: str, actor_2: str) -> list:
+    actors = {actor_1, actor_2}
+    co_actors = []
+    with sqlite3.connect('data/netflix.db') as connection:
+        cur = connection.cursor()
+        cur.execute("SELECT `cast` FROM netflix "
+                    "WHERE `cast` LIKE :actor_1 AND `cast` LIKE :actor_2",
+                    {"actor_1": f"%{actor_1}%", "actor_2": f"%{actor_2}%"})
+        data = cur.fetchall()
+    for item in data:
+        actors_list = set(str(item).replace("'", "").lstrip("(").rstrip(")").rstrip(",").split(", "))
+        actors_list -= actors
+        for actor in actors_list:
+            co_actors.append(actor)
+    result = list(set([actor for actor in co_actors if co_actors.count(actor) >= 2]))
+    # print(result)
+    return result
+
+
+get_by_actors('Jack Black', 'Dustin Hoffman')
