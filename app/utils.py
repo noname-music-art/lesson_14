@@ -39,3 +39,18 @@ def get_movie_by_rating(*rating: str) -> Response:
         for item in data:
             zipped.append(dict(zip(columns, item)))
         return jsonify(zipped)
+
+
+def get_movie_by_genre(genre: str) -> Response:
+    columns = ["title", "description"]
+    zipped = []
+
+    with sqlite3.connect('data/netflix.db') as connection:
+        cur = connection.cursor()
+        cur.execute("SELECT title, description FROM netflix "
+                    "WHERE listed_in LIKE :genre "
+                    "ORDER BY release_year DESC LIMIT 10 ", {"genre": f"%{genre}%"})
+        data = cur.fetchall()
+        for item in data:
+            zipped.append(dict(zip(columns, item)))
+        return jsonify(zipped)

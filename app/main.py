@@ -1,5 +1,5 @@
 from flask import Blueprint
-from app.utils import get_movie_by_title, get_movie_by_date_range, get_movie_by_rating
+from app.utils import get_movie_by_title, get_movie_by_date_range, get_movie_by_rating, get_movie_by_genre
 
 main_blueprint = Blueprint('main_blueprint', __name__)
 
@@ -27,4 +27,9 @@ def page_family_movies():
 @main_blueprint.route("/rating/adult")
 def page_adult_movies():
     return get_movie_by_rating("R", "NC-17")
+
+
+@main_blueprint.route("/genre/<genre>")
+def page_movies_by_genre(genre):
+    return get_movie_by_genre(genre)
 
